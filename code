@@ -1,0 +1,178 @@
+import 'package:flutter/material.dart';
+
+class MusicPlayerApp extends StatelessWidget {
+  const MusicPlayerApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Mock Music Player',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MusicPlayerUI(),
+    );
+  }
+}
+
+class Song {
+  final String title;
+  final String artist;
+  final String image;
+
+  Song({required this.title, required this.artist, required this.image});
+}
+
+class MusicPlayerUI extends StatefulWidget {
+  const MusicPlayerUI({super.key});
+
+  @override
+  State<MusicPlayerUI> createState() => _MusicPlayerUIState();
+}
+
+class _MusicPlayerUIState extends State<MusicPlayerUI> {
+  final List<Song> songs = [
+    Song(
+      title: 'Peaceful Sky',
+      artist: 'Zen Beats',
+      image: 'assets/images/song1.jpg',
+    ),
+    Song(
+      title: 'Ocean Drive',
+      artist: 'Wave Sounds',
+      image: 'assets/images/song2.jpg',
+    ),
+  ];
+
+  int currentIndex = 0;
+  bool isPlaying = false;
+  double position = 0.0;
+  double volume = 1.0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start a mock seek bar animation
+    simulatePlayback();
+  }
+
+  void simulatePlayback() async {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (isPlaying) {
+        setState(() {
+          position += 1;
+          if (position >= 100) {
+            position = 0;
+            nextSong();
+          }
+        });
+      }
+      return true;
+    });
+  }
+
+  void togglePlay() {
+    setState(() => isPlaying = !isPlaying);
+  }
+
+  void nextSong() {
+    setState(() {
+      currentIndex = (currentIndex + 1) % songs.length;
+      position = 0;
+    });
+  }
+
+  void previousSong() {
+    setState(() {
+      currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+      position = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final song = songs[currentIndex];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Music Player UI')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Album Art
+              Image.asset(
+                song.image,
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(height: 20),
+
+              // Song Info
+              Text(
+                song.title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(song.artist, style: const TextStyle(color: Colors.grey)),
+
+              const SizedBox(height: 20),
+
+              // Seek Bar (Fake Progress)
+              Slider(
+                value: position,
+                min: 0,
+                max: 100,
+                onChanged: (value) => setState(() => position = value),
+              ),
+              Text("${position.toStringAsFixed(0)} / 100"),
+
+              const SizedBox(height: 20),
+
+              // Controls
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.skip_previous),
+                    onPressed: previousSong,
+                  ),
+                  IconButton(
+                    icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                    iconSize: 40,
+                    onPressed: togglePlay,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.skip_next),
+                    onPressed: nextSong,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Volume Control
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.volume_down),
+                  Slider(
+                    value: volume,
+                    onChanged: (v) => setState(() => volume = v),
+                    min: 0,
+                    max: 1,
+                  ),
+                  const Icon(Icons.volume_up),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
